@@ -10,8 +10,9 @@ class AttendanceSystemGUI:
         self.root.title("Smart Attendance System")
         self.root.geometry("800x600")
         self.root.configure(bg="#f4f4f4")
-        self.other_session_entry=None
+        self.other_session_entry =None  
         self.main_menu()
+
     def main_menu(self):
         self.clear_window()
         self.title_label = tk.Label(
@@ -52,81 +53,82 @@ class AttendanceSystemGUI:
 
         self.form_frame = tk.Frame(self.root, bg="#f4f4f4")
         self.form_frame.pack(pady=20)
-
+        
         tk.Label(self.form_frame, text="Class :", font=("Helvetica", 14), bg="#f4f4f4").grid(row=0, column=0, sticky=tk.W, pady=5)
         self.class_var = tk.StringVar()
         subject_dropdown = ttk.Combobox(self.form_frame, textvariable=self.class_var, font=("Helvetica", 12), width=30)
         subject_dropdown['values'] = ("cse/div1/sem-2", "cse/div2/sem-2", "cse/div1/sem-4", "cse/div2/sem-4", "cse/div1/sem-6","cse/div2/sem-6")
         subject_dropdown.grid(row=0, column=1, pady=5)
-
-
-        tk.Label(self.form_frame, text="Subject:", font=("Helvetica", 14), bg="#f4f4f4").grid(row=1, column=0, sticky=tk.W, pady=5)
+        
+        
+        tk.Label(self.form_frame, text="Subject:", font=("Helvetica", 14), bg="#f4f4f4").grid(row=0, column=0, sticky=tk.W, pady=5)
         self.subject_var = tk.StringVar()
         subject_dropdown = ttk.Combobox(self.form_frame, textvariable=self.subject_var, font=("Helvetica", 12), width=30)
         subject_dropdown['values'] = ("Mathematics", "Physics", "Chemistry", "AI Basics", "Programming")
-        subject_dropdown.grid(row=1, column=1, pady=5)
+        subject_dropdown.grid(row=0, column=1, pady=5)
 
-        tk.Label(self.form_frame, text="Session Type:", font=("Helvetica", 14), bg="#f4f4f4").grid(row=2, column=0, sticky=tk.W, pady=5)
+        tk.Label(self.form_frame, text="Session Type:", font=("Helvetica", 14), bg="#f4f4f4").grid(row=1, column=0, sticky=tk.W, pady=5)
         self.session_type_var = tk.StringVar()
         session_type_dropdown = ttk.Combobox(self.form_frame, textvariable=self.session_type_var, font=("Helvetica", 12), width=30)
-        session_type_dropdown['values'] = ("Lecture", "Lab","Others")
-        session_type_dropdown.grid(row=2, column=1, pady=5)
+        session_type_dropdown['values'] = ("Lecture", "Lab", "Others")
+        session_type_dropdown.grid(row=1, column=1, pady=5)
 
         session_type_dropdown.bind("<<ComboboxSelected>>", self.on_session_type_select)
 
-
-        # Start Time and End Time fields
-        tk.Label(self.form_frame, text="Start Time:(HH:MM)", font=("Helvetica", 14), bg="#f4f4f4").grid(row=4, column=0, sticky=tk.W, pady=5)
+        tk.Label(self.form_frame, text="Start Time (HH:MM):", font=("Helvetica", 14), bg="#f4f4f4").grid(row=3, column=0, sticky=tk.W, pady=5)
         self.start_time_entry = tk.Entry(self.form_frame, font=("Helvetica", 12), width=33)
-        self.start_time_entry.grid(row=4, column=1, pady=5)
+        self.start_time_entry.grid(row=3, column=1, pady=5)
 
-        tk.Label(self.form_frame, text="End Time:(HH:MM)", font=("Helvetica", 14), bg="#f4f4f4").grid(row=5, column=0, sticky=tk.W, pady=5)
+        tk.Label(self.form_frame, text="End Time (HH:MM):", font=("Helvetica", 14), bg="#f4f4f4").grid(row=4, column=0, sticky=tk.W, pady=5)
         self.end_time_entry = tk.Entry(self.form_frame, font=("Helvetica", 12), width=33)
-        self.end_time_entry.grid(row=5, column=1, pady=5)
+        self.end_time_entry.grid(row=4, column=1, pady=5)
 
-       
         start_attendance_button = tk.Button(
             self.root, text="Start Attendance", font=("Helvetica", 14), bg="#4caf50", fg="white", command=self.process_attendance
         )
         start_attendance_button.pack(pady=20)
-        
+
         back_button = tk.Button(
             self.root, text="Back", font=("Helvetica", 12), bg="#e0e0e0", fg="#333", command=self.main_menu
         )
         back_button.pack(pady=10)
+
     def on_session_type_select(self, event):
         selected_session = self.session_type_var.get()
 
+    # Remove existing "Specify Session Type" label and entry if they exist
         if hasattr(self, "other_session_label"):
             self.other_session_label.grid_forget()
         if self.other_session_entry:
             self.other_session_entry.grid_forget()
-        
+    
+    # If "Others" is selected, show the label and entry field
         if selected_session == "Others":
             self.other_session_label = tk.Label(
-                self.form_frame, 
-                text="Specify Session Type:", 
-                font=("Helvetica", 14), 
-                bg="#f4f4f4"
-            )
-            self.other_session_label.grid(row=2, column=0, sticky=tk.W, pady=5)
+            self.form_frame, 
+            text="Specify Session Type:", 
+            font=("Helvetica", 14), 
+            bg="#f4f4f4"
+        )
+        self.other_session_label.grid(row=2, column=0, sticky=tk.W, pady=5)
 
-            if self.other_session_entry is None:
-                self.other_session_entry = tk.Entry(
-                    self.form_frame, 
-                    font=("Helvetica", 12), 
-                    width=32
-                )
-            self.other_session_entry.grid(row=2, column=1, pady=5)
+        if self.other_session_entry is None:
+            self.other_session_entry = tk.Entry(
+                self.form_frame, 
+                font=("Helvetica", 12), 
+                width=32
+            )
+        self.other_session_entry.grid(row=2, column=1, pady=5)
+ 
 
     def process_attendance(self):
-        class_type = self.class_var.get()
+        class_type  = self.class_var.get()
         subject = self.subject_var.get()
         session_type = self.session_type_var.get()
         start_time = self.start_time_entry.get()
         end_time = self.end_time_entry.get()
 
-        if not class_type or not subject or not session_type or not start_time or not end_time:
+        if  not subject or not session_type or not start_time or not end_time:
             messagebox.showerror("Error", "All fields are required!")
             return
 
@@ -152,8 +154,10 @@ class AttendanceSystemGUI:
             self.root, text="[Logs will be displayed here]", font=("Helvetica", 14), bg="#f4f4f4", fg="#555"
         )
         logs_label.pack(pady=50)
+
         back_button = tk.Button(
-            self.root,text="Back",font=("Helvetica", 12), bg="#e0e0e0", fg="#333", command=self.main_menu)
+            self.root, text="Back", font=("Helvetica", 12), bg="#e0e0e0", fg="#333", command=self.main_menu
+        )
         back_button.pack(pady=10)
 
     def settings(self):
@@ -168,8 +172,10 @@ class AttendanceSystemGUI:
             self.root, text="[Settings options will be added here]", font=("Helvetica", 14), bg="#f4f4f4", fg="#555"
         )
         settings_label.pack(pady=50)
+
         back_button = tk.Button(
-            self.root,text="Back",font=("Helvetica", 12), bg="#e0e0e0", fg="#333", command=self.main_menu)
+            self.root, text="Back", font=("Helvetica", 12), bg="#e0e0e0", fg="#333", command=self.main_menu
+        )
         back_button.pack(pady=10)
 
     def clear_window(self):
@@ -177,8 +183,3 @@ class AttendanceSystemGUI:
             widget.destroy()
     def start_b_scanning(self):
         start_b_scanning()
-
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = AttendanceSystemGUI(root)
-    root.mainloop()
