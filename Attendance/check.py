@@ -1,6 +1,6 @@
 # main.py
-from .Barcode_Scanning import start_b_scanning
-from .face_scannig import start_face_recognition
+from Barcode_Scanning import start_b_scanning
+from face_scannig import start_face_recognition
 import time
 
 if __name__ == "__main__":

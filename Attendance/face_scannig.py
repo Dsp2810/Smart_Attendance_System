@@ -1,28 +1,68 @@
-# from .Barcode_Scanning import start_b_scanning
 import cv2
 import pickle
 import face_recognition
 from datetime import datetime
+import csv
+import os
+from Barcode_Scanning import start_b_scanning  # Assuming this function returns barcode data
+from Attendance_marking import create_attendance_csv  # Assuming this function marks attendance in CSV
 
-def load_known_faces():
-    with open("face_encodings.pkl", "rb") as file:
-        data = pickle.load(file)
-    return data
+def load_known_faces_from_csv(csv_file):
+    """Loads known face encodings and roll numbers from a CSV file."""
+    known_face_encodings = []
+    known_face_ids = []
+    
+    # Read the CSV file
+    with open(csv_file, newline='', encoding='utf-8') as file:
+        reader = csv.DictReader(file)
+        
+        for row in reader:
+            student_id = row['id']
+            photo_path = row['photo']
+            
+            # Load the student's image
+            if os.path.exists(photo_path):
+                student_image = face_recognition.load_image_file(photo_path)
+                student_face_encoding = face_recognition.face_encodings(student_image)
+                
+                if student_face_encoding:
+                    known_face_encodings.append(student_face_encoding[0])  # Get the first face encoding
+                    known_face_ids.append(student_id)
+                else:
+                    print(f"Warning: No face found in image {photo_path}")
+            else:
+                print(f"Warning: Image file not found: {photo_path}")
+    
+    return {'encodings': known_face_encodings, 'roll_numbers': known_face_ids}
+
+def verify_face(recognized_name, barcode_data, known_face_encodings, known_face_ids):
+    """Verifies the face for a match after barcode scanning."""
+    if recognized_name == barcode_data:
+        create_attendance_csv(recognized_name)  # Mark attendance if names match
+        print(f"Attendance Marked for {recognized_name}")
+        return True
+    else:
+        print("Mismatch between barcode and face. Please try again.")
+        return False
 
 def start_face_recognition(barcode_data):
+    """Starts face recognition after barcode scanning and marks attendance."""
     # Load known faces and their corresponding roll numbers
-    known_faces = load_known_faces()
+    known_faces = load_known_faces_from_csv(r"C:\Users\Dhava\Documents\GitHub\Smart_Attendance_System\Attendance\datasheet.csv")  # Use the CSV file instead of .pkl
     known_face_encodings = known_faces['encodings']
     known_face_ids = known_faces['roll_numbers']
     
-    # Initialize the webcam
-    cap = cv2.VideoCapture(0)
+    # Initialize the webcam for face scanning
+    cap = cv2.VideoCapture(1)
     
     if not cap.isOpened():
         print("Error: Unable to access the camera.")
         exit()
 
-    while True:
+    attempts = 0
+    recognized_name = "Unknown"
+
+    while attempts < 2:  # Perform face recognition twice for verification
         ret, frame = cap.read()
         if not ret:
             print("Failed to grab frame. Exiting...")
@@ -41,13 +81,8 @@ def start_face_recognition(barcode_data):
                 first_match_index = matches.index(True)
                 name = known_face_ids[first_match_index]
                 print(f"Matched Face: {name}")
-                
-                # Compare with the barcode data
-                if name == barcode_data:
-                    mark_attendance(name)
-                    print(f"Attendance Marked for {name}")
-                else:
-                    print("Face and Barcode do not match!")
+                recognized_name = name
+                attempts += 1
 
             # Draw a rectangle around the face
             cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
@@ -61,23 +96,24 @@ def start_face_recognition(barcode_data):
     cap.release()
     cv2.destroyAllWindows()
 
-def mark_attendance(student_id):
-    # Current date and time
-    current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    if attempts == 2:  # After two attempts, verify face with barcode data
+        return verify_face(recognized_name, barcode_data, known_face_encodings, known_face_ids)
+    else:
+        print("Face recognition failed twice. Please try again.")
+        return False
 
-    # Check if attendance file exists, if not create it
-    import os
-    import csv
-    if not os.path.exists('attendancelist.csv'):
-        with open('attendancelist.csv', 'w', newline='') as file:
-            writer = csv.writer(file)
-            writer.writerow(['id', 'time', 'session', 'status'])  # Writing headers
+def start_process():
+    """Starts the barcode scanning and then initiates face recognition."""
+    while True:  # Loop for continuously scanning barcodes and recognizing faces
+        # Start barcode scanning and get the scanned barcode data
+        barcode_data = start_b_scanning()  # Assuming this function returns the barcode data
+        print(f"Barcode Scanned: {barcode_data}")
+        
+        # After barcode scan, initiate face recognition
+        if start_face_recognition(barcode_data):
+            print("Attendance process completed.")
+        else:
+            print("Attendance marking failed. Please try again.")
 
-    # Append student attendance to the CSV file
-    with open('attendancelist.csv', 'a', newline='') as file:
-        writer = csv.writer(file)
-        session = 'Morning'  # This could be dynamically set based on time of day
-        status = 'Present'
-        writer.writerow([student_id, current_time, session, status])
-
-    print(f"Attendance for {student_id} marked as Present.")
+# Start the entire process
+start_process()

@@ -33,6 +33,7 @@ def start_b_scanning():
                 file.write(f"{barcode_data}, {barcode_type}\n")
 
         # Display the video feed
+            break
         cv2.imshow("Barcode Scanning (iVCam)", frame)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
